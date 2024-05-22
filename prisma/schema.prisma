@@ -1,0 +1,167 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["extendedWhereUnique"]
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum Chain {
+  ETHEREUM        @map("ETHEREUM")
+  ETHEREUM_GOERLI @map("ETHEREUM_GOERLI")
+  POLYGON         @map("POLYGON")
+  POLYGON_MUMBAI  @map("POLYGON_MUMBAI")
+  BSC             @map("BSC")
+  BSC_TESTNET     @map("BSC_TESTNET")
+  OPTIMISM        @map("OPTIMISM")
+  OPTIMISM_GOERLI @map("OPTIMISM_GOERLI")
+}
+
+enum ContractType {
+  VALVE @map("VALVE")
+}
+
+enum ContractVisibility {
+  COMMUNITY @map("COMMUNITY")
+  PRIVATE   @map("PRIVATE")
+}
+
+enum ContractStatus {
+  DRAFT     @map("DRAFT")
+  PENDING   @map("PENDING")
+  PUBLISHED @map("PUBLISHED")
+}
+
+type ContractOwner {
+  address String
+  revenue Int
+}
+
+type CurrencyLocation {
+  address String
+  chain   Chain
+}
+
+model Currency {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  title     String             @unique
+  locations CurrencyLocation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum ContractParticipantIdentifierType {
+  ID      @map("ID")
+  ADDRESS @map("ADDRESS")
+}
+
+enum ContractDeploymentStrategy {
+  PLATFORM @map("PLATFORM")
+  CLIENT   @map("CLIENT")
+}
+
+model ContractParticipant {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  identifier     String
+  identifierType ContractParticipantIdentifierType
+
+  role String
+
+  contract   Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  contractId String   @db.ObjectId
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([identifier])
+}
+
+model Contract {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  author            String
+  owner             String?
+  title             String
+  version           String
+  address           String?
+  description       String?
+  legalAgreementUrl String?
+  visualizationUrl  String?
+
+  chain      Chain?
+  type       ContractType
+  visibility ContractVisibility
+  status     ContractStatus
+
+  metadata Json
+
+  participants ContractParticipant[]
+  deployments  ContractDeployment[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  publishedAt DateTime?
+
+  v Int @default(0) @map("_v")
+
+  @@index([author])
+  @@index([owner])
+  @@index([address])
+}
+
+enum ContractDeploymentStatus {
+  CREATED   @map("CREATED")
+  PREPARED  @map("PREPARED")
+  DEPLOYING @map("DEPLOYING")
+  FAILED    @map("FAILED")
+  COMPLETED @map("COMPLETED")
+}
+
+model ContractDeployment {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  status        ContractDeploymentStatus
+  strategy      ContractDeploymentStrategy
+  transaction   String?
+  address       String?
+
+  defenderTransactionId String?
+
+  txData      Json
+  unsignedTx  Json
+
+  contract                           Contract                            @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  contractId                         String                              @unique @db.ObjectId
+  contractDeployedAvroRecord         ContractDeployedAvroRecord?         @relation(fields: [contractDeployedAvroRecordId], references: [id], onDelete: NoAction)
+  contractDeployedAvroRecordId       String?                             @unique @db.ObjectId
+  contractDeployFailedAvroRecord     ContractDeployFailedAvroRecord?     @relation(fields: [contractDeployFailedAvroRecordId], references: [id], onDelete: NoAction)
+  contractDeployFailedAvroRecordId   String?                             @unique @db.ObjectId
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  v Int @default(0) @map("_v")
+
+  @@index([transaction])
+}
+
+model ContractDeployedAvroRecord {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  record Bytes
+
+  contractDeployment ContractDeployment?
+}
+
+model ContractDeployFailedAvroRecord {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  record Bytes
+
+  contractDeployment ContractDeployment?
+}

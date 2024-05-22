@@ -1,0 +1,10 @@
+{
+  "type": "record",
+  "name": "ContractDeployedRecord",
+  "namespace": "rsp.contracts",
+  "version": "1",
+  "fields": [
+    { "name": "deploymentId", "type": "string" },
+    { "name": "contractId", "type": "string" }
+  ]
+}

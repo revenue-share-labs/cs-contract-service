@@ -1,0 +1,17 @@
+{
+  "type": "record",
+  "name": "ContractDeployFailedRecord",
+  "namespace": "rsp.contracts",
+  "version": "1",
+  "fields": [
+    { "name": "deploymentId", "type": "string" },
+    { "name": "contractId", "type": "string" },
+    { "name": "errorDetails", "type": {
+        "type": "record",
+        "name": "ErrorDetails",
+        "fields": [
+            { "name": "message", "type": "string" }
+        ]
+    }}
+  ]
+}
