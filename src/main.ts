@@ -69,7 +69,6 @@ async function bootstrap(): Promise<void> {
 
     SwaggerModule.setup(swagger.path, app, document);
   }
-
   await app.startAllMicroservices();
   await app.listen(base.port || 3000);
 }
