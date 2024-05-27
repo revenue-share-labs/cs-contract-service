@@ -1,4 +1,4 @@
-FROM node:18-slim
+FROM node:18-alpine
 WORKDIR /app
 # Bundle app source
 COPY . .
@@ -9,5 +9,5 @@ RUN npm install && \
     npm run build
 
 # Expose port and start application
-EXPOSE 3020
-CMD ["/bin/bash", "-c", "./run.sh"]
+#EXPOSE 3020
+#CMD ["/bin/bash", "-c", "./run.sh"]
